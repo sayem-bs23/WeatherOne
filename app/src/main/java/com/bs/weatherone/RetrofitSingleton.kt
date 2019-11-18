@@ -36,22 +36,4 @@ object RetrofitSingleton{
 
     }
 
-
-//    val retrofitBuilder: Retrofit.Builder by lazy {
-//        val logging = HttpLoggingInterceptor()
-//        logging.level = HttpLoggingInterceptor.Level.BODY
-//        val httpClient = OkHttpClient.Builder()
-//        httpClient.addInterceptor(logging)
-//
-//        Retrofit.Builder()
-//            .baseUrl(BASE_URL)
-//            .addConverterFactory(GsonConverterFactory.create())
-//    }
-//
-//    val forecastInstance:ForecastService by lazy{
-//
-//        retrofitBuilder
-//            .build()
-//            .create(ForecastService::class.java)
-//    }
 }

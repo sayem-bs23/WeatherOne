@@ -39,7 +39,7 @@ class CustomAdapter (val weatherList: ArrayList<Weather>,  val clickListener: (W
         val temperature = itemView.findViewById(R.id.temperature__cardTextView) as TextView
 
         fun bind(weather: Weather, clickListener: (Weather, Int) -> Unit, position: Int){
-            //TODO: Implement new fragment
+
             itemView.setOnClickListener({clickListener(weather,position)})  //Assign Click Listener to the View Holder
         }
 

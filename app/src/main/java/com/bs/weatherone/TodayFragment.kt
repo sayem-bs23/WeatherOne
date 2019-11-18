@@ -75,7 +75,6 @@ class TodayFragment: Fragment(){
             }
 
             override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
-//                weatherData!!.text = t.message
             }
         })
     }

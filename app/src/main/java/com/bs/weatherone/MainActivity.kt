@@ -24,24 +24,6 @@ class MainActivity : AppCompatActivity() {
         viewPager.adapter = adapter
         tabs.setupWithViewPager(viewPager)
 
-//        tabs.setupWithViewPager(viewPager)
-
-
-//        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-//        viewModel.user.observe(this, Observer{
-////            Log.d("api_resp", it.dayList[0].main?.temp.toString())
-//            Log.d("dbg_observer",it[0].day)
-//            Log.d("dbg", "abc")
-//
-//            customAdapter.setData(it)
-//            customAdapter.setData(it)
-//
-//
-//        })
-
-//        viewModel.setUserId("1")
-
-
     }
 
 
