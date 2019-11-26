@@ -17,12 +17,12 @@ object Repository{
     val units = "metric"
     var job:CompletableJob? = null //more control on asynchronous job
 
-    fun getUser(userId: String): LiveData<ArrayList<Weather>>{
 
+    fun getCurrentLiveData(lat:String, lon:String): LiveData<ArrayList<Weather>>{
 
         val isOnline = true
         if(isOnline) {
-            return getUserFromNetwork()
+            return getUserFromNetwork(lat, lon)
         }
         else{
             return getUserFromLocal()
@@ -50,7 +50,7 @@ object Repository{
         return weatherList
     }
 
-    private fun getUserFromNetwork():LiveData<ArrayList<Weather>> {
+    private fun getUserFromNetwork(lat:String, lon:String):LiveData<ArrayList<Weather>> {
         job = Job()
         return object : LiveData<ArrayList<Weather>>(){
             override fun onActive() {
@@ -58,6 +58,8 @@ object Repository{
 
                 job?.let{theJob->
                     CoroutineScope(IO + theJob).launch{
+
+
                         val forecastResponse = RetrofitSingleton
                             .forecastInstance
                             .getTenDaysForecastData(lat, lon, AppId, units)
@@ -74,6 +76,7 @@ object Repository{
                             val date = monthMapper[Date().month].toString() + " "+ getDate(idx)
                             val day = dayMapper[(Date().day + idx)%7].toString()
                             val temp = weatherResponse.main!!.temp.roundToInt().toString()
+
                             val forecast = validateForecast(weatherResponse.WeatherAPI[0]!!.main.toString() )
 
                             weatherList.add( Weather(date,

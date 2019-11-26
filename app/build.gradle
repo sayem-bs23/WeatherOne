@@ -11,7 +11,7 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.bs.weatherone"
-        minSdkVersion 22
+        minSdkVersion 23
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -60,5 +60,10 @@ dependencies {
 
     //tabs
     implementation 'com.google.android.material:material:1.0.0'
-    
+
+    // location play services
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
+
+    // Preference
+    implementation "androidx.preference:preference:1.0.0"
 }

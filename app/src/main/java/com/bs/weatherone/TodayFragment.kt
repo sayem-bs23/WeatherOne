@@ -17,12 +17,23 @@ import java.util.*
 import kotlin.math.roundToInt
 
 class TodayFragment: Fragment(){
+    val AppId= "bb4dd20e432ae754a84c5b91ee475854"
+    var lat = "23"
+    var lon = "90"
+    var units = "metric"
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = inflater.inflate(R.layout.fragment_today, container, false)!!
 
+    fun updateData(lat:String, lon:String){
+        this.lat = lat
+        this.lon = lon
+
+        getCurrentData()
+    }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -33,12 +44,8 @@ class TodayFragment: Fragment(){
 
     }
 
-    companion object{
-        val AppId= "bb4dd20e432ae754a84c5b91ee475854"
-        val lat = "23"
-        val lon = "90"
-        val units = "metric"
-    }
+
+
 
     internal fun getCurrentData() {
         val logging = HttpLoggingInterceptor()
@@ -48,6 +55,9 @@ class TodayFragment: Fragment(){
         httpClient.addInterceptor(logging)
         val retrofit = RetrofitSingleton.todayInstance
         val call = retrofit.getCurrentWeatherData(lat, lon, AppId, units)
+
+
+
 
         call.enqueue(object : Callback<WeatherResponse> {
             override fun onResponse(call: Call<WeatherResponse>, response: Response<WeatherResponse>) {
@@ -60,6 +70,7 @@ class TodayFragment: Fragment(){
                     val day = monthMapper[Date().month].toString()
                     val temp = weatherResponse.main!!.temp.roundToInt().toString()
                     val forecast = validateForecast(weatherResponse.WeatherAPI[0]!!.main.toString() )
+
 
                     val obj =  Weather(date,
                         day,
@@ -78,6 +89,10 @@ class TodayFragment: Fragment(){
             }
         })
     }
+
+
+
+
 
 
 }

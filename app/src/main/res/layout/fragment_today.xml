@@ -84,6 +84,7 @@
             android:textColor="@android:color/secondary_text_light"
             app:layout_constraintStart_toEndOf="@+id/dateAndTimeTop"
             app:layout_constraintTop_toTopOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

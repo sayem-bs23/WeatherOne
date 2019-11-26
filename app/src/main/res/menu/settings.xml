@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:showAsAction="always"
+    >
+    <item
+        android:id="@+id/location_from_device"
+        android:icon="@drawable/gps_avatar"
+        app:showAsAction="collapseActionView"
+        android:title="Location from device"/>
+    <item
+        android:id="@+id/location_custom"
+        android:icon="@drawable/search"
+        app:showAsAction="collapseActionView"
+        android:title="Custom location"/>
+
+</menu>

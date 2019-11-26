@@ -38,17 +38,44 @@ class TenDaysFragment: Fragment(){
         weather_recycler_view.layoutManager = LinearLayoutManager(context)
         weather_recycler_view.adapter = customAdapter
 
+        val lc = LocationController(context!!)
+        lc.updateLocation()
+        lc.locationListener = object : LocationController.LocationListener {
+            override fun onNewLocation(lat: Double, lon: Double) {
+                Log.d("dbg", "my lat $lat")
+//                viewModel.setUserId(lat.toInt().toString())
+                viewModel.setLatLon(lat.toInt().toString(), lon.toInt().toString())
+            }
+            override fun onLocationFailed() {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+        }
+
+
+
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-        viewModel.user.observe(this, Observer{
+        viewModel.weatherData.observe(this, Observer{
             //            Log.d("api_resp", it.dayList[0].main?.temp.toString())
-            Log.d("dbg_observer",it[0].day)
+            Log.d("dbg_observer","Temp ${it[0].temperature}")
             Log.d("dbg", "abc")
 
             customAdapter.setData(it)
 
         })
 
-        viewModel.setUserId("1")
+        //viewModel.setUserId("1")
+
+
+
+
+//        viewModel.setUserId(locCon.getLatitudeBasedOnSetting().toInt().toString())
+
+//        val lc = LocationController(context!!)
+//        Log.d("dbg","msg ${lc.getLongitudeBasedOnSetting()}")
+
+
+
 
         //getForecast()
 
