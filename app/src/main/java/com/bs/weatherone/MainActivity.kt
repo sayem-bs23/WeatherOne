@@ -1,6 +1,7 @@
 package com.bs.weatherone
 
 import android.Manifest
+import android.app.Dialog
 import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
@@ -10,9 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
+import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
@@ -25,6 +24,16 @@ import com.google.android.libraries.places.api.model.TypeFilter
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.diaglog_custom_location.*
+import android.view.ViewGroup.LayoutParams.FILL_PARENT
+import android.view.Gravity
+import androidx.core.app.ComponentActivity.ExtraData
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import com.bs.weatherone.LatLon
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class MainActivity : AppCompatActivity() {
@@ -44,6 +53,29 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.settings, menu)
+
+        val manager = getSystemService(Context.SEARCH_SERVICE) as SearchManager
+        val searchItem = menu?.findItem(R.id.location_custom)
+//        val searchView = searchItem?.actionView as SearchView
+//
+////        searchView.suggestionsAdapter = CursorAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, arrayListOf("a","b"))
+//        searchView.setSearchableInfo(manager.getSearchableInfo(componentName))
+//        searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener{
+//            override fun onQueryTextSubmit(query: String?): Boolean {
+//                searchView.clearFocus()
+//                searchView.setQuery("", false)
+//                searchItem.collapseActionView()
+//                Toast.makeText(this@MainActivity, "searched $query", Toast.LENGTH_SHORT).show()
+//
+//                return true
+//            }
+//
+//            override fun onQueryTextChange(newText: String?): Boolean {
+//                return false
+//            }
+//
+//
+//        })
         return true
     }
 
@@ -52,6 +84,7 @@ class MainActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
 
         autoSuggestAdapter = AutoSuggestAdapter(this,android.R.layout.simple_dropdown_item_1line)
         val adapter = ViewPagerAdapter(supportFragmentManager)
@@ -105,8 +138,9 @@ class MainActivity : AppCompatActivity() {
        when(item.itemId){
 //           R.id.location_from_device -> Toast.makeText(this, "Take from location", Toast.LENGTH_SHORT).show()
            R.id.location_custom -> {
-               showCustomLocationDialog()
-//               sid()
+               customLocationSearch()
+//               showCustomLocationDialog()
+
            }
            R.id.location_from_device ->{
                fromDevice()
@@ -140,11 +174,141 @@ class MainActivity : AppCompatActivity() {
             42
         )
     }
+    private fun customLocationSearch() {
 
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+        val dialog = Dialog(
+            this,
+            android.R.style.Theme_Translucent_NoTitleBar
+        )
+        dialog.setCanceledOnTouchOutside(true)
+        val view:View = layoutInflater.inflate(R.layout.diaglog_custom_location, null)
+
+        // Setting dialogview
+        val window = dialog.getWindow()
+        window?.setGravity(Gravity.CENTER)
+
+        window?.setLayout(ViewGroup.LayoutParams.FILL_PARENT, ViewGroup.LayoutParams.FILL_PARENT)
+        dialog.setTitle(null)
+        dialog.setContentView(view)
+        dialog.setCancelable(true)
+
+        val locationEditText = view.findViewById(R.id.locationEditText) as EditText
+        locationSuggestionHandler(view)
+
+        val searchBtn = view.findViewById<Button>(R.id.btn_search)
+        searchBtn.setOnClickListener {
+            Toast.makeText(this, "ok search", Toast.LENGTH_SHORT).show()
+
+            val apiKey = "AIzaSyCTlaLxwG91VdqfSR6YYA-BfXxcftO-btI"
+            if (!Places.isInitialized()) {
+                Places.initialize(applicationContext, apiKey )
+            }
+
+            val queryText = locationEditText.text.toString()
+            val token = AutocompleteSessionToken.newInstance()
+            val request = FindAutocompletePredictionsRequest.builder()
+                .setTypeFilter(TypeFilter.ADDRESS)
+                .setSessionToken(token)
+                .setQuery(queryText)
+                .build()
+
+
+            val placesClient = Places.createClient(this)
+            val alist = ArrayList<String>()
+            placesClient.findAutocompletePredictions(request).addOnSuccessListener { response ->
+                val mResult = StringBuilder()
+
+                for (prediction in response.autocompletePredictions) {
+                    var s = prediction.getPrimaryText(null).toString()
+                    alist.add(s)
+                }
+
+                autoSuggestAdapter?.setData(alist)
+                autoSuggestAdapter?.notifyDataSetChanged()
+                Log.d("dbg","size_arr_list $alist.size")
+                Toast.makeText(this, mResult, Toast.LENGTH_LONG).show()
+
+                searchBtn.setText("set location")
+                searchBtn.setOnClickListener {
+
+                    /***/
+                    val editTextAfterSelection: EditText = view.findViewById(R.id.locationEditText) as EditText
+                    val check = editTextAfterSelection.text.toString()
+                    Log.d("dbg","check $check")
+
+                    var placeIdFromPrimaryText= ""
+                    var placeNameFromPrimaryText= ""
+                    if(check != null){
+                        for (prediction in response.autocompletePredictions) {
+                            var s = prediction.getPrimaryText(null).toString()
+
+                            if (s == check) {
+                                Toast.makeText(
+                                    this,
+                                    "name: ${prediction.getPrimaryText(null)} key ${prediction.placeId}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                placeNameFromPrimaryText = prediction.getPrimaryText(null).toString()
+                                placeIdFromPrimaryText = prediction.placeId
+                                break
+                            }
+                        }
+
+                    }
+
+
+                    val placeId = placeIdFromPrimaryText
+
+                    // Specify the fields to return.
+                    val placeFields :List<Place.Field> = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG)
+                    Log.d("dbg","request place- name:${placeNameFromPrimaryText} id:${placeId}")
+                    val request : FetchPlaceRequest = FetchPlaceRequest.newInstance(placeId, placeFields)
+                    placesClient.fetchPlace(request).addOnSuccessListener {
+
+                        val place: Place = it.getPlace()
+                        Log.d("dbg", "response place- name:${place.name} id: ${place.id}")
+                        //                        Log.i(TAG, "Place found: " + place.getName());
+                        Log.d("dbg", "reverse look up: ${place.latLng?.latitude.toString()}")
+                        if(place.latLng != null){
+                            val latlon: LatLon? = LatLon(
+                                place.latLng?.latitude?.toInt().toString(),
+                                place.latLng?.longitude?.toInt().toString()
+                            )
+                            tenDaysFragment.viewModel.setLatLon(latlon!!.lat, latlon!!.lon)
+                            todayFragment.updateData(latlon!!.lat, latlon!!.lon)
+                        }
+
+                    }.addOnFailureListener{
+                        Log.d("dbg","place not found exception ${it.printStackTrace()}")
+                    }
+
+                    dialog.dismiss()
+                    supportActionBar?.setDisplayShowTitleEnabled(true)
+                }
+            }.addOnFailureListener { exception ->
+                if (exception is ApiException) {
+    //                    Log.e(FragmentActivity.TAG, "Place not found: " + exception.statusCode)
+                }
+            }
+
+            /***/
+        }
+
+
+
+        dialog.show()
+
+
+
+
+//        supportActionBar.setDisplayShowTitleEnabled(false)
+    }
 
     private fun showCustomLocationDialog() {
         val context = this
         val builder = AlertDialog.Builder(context)
+
         builder.setTitle("Custom locaiton")
         val view = layoutInflater.inflate(R.layout.diaglog_custom_location, null)
         val locationEditText = view.findViewById(R.id.locationEditText) as EditText
@@ -156,9 +320,6 @@ class MainActivity : AppCompatActivity() {
         searchBtn.setOnClickListener({
             Toast.makeText(this, "ok search", Toast.LENGTH_SHORT).show()
 
-            /**
-             * handle request
-             */
             val apiKey = "AIzaSyCTlaLxwG91VdqfSR6YYA-BfXxcftO-btI"
             if (!Places.isInitialized()) {
                 Places.initialize(applicationContext, apiKey )
@@ -181,18 +342,6 @@ class MainActivity : AppCompatActivity() {
                 for (prediction in response.autocompletePredictions) {
                     var s = prediction.getPrimaryText(null).toString()
                     alist.add(s)
-//                    mResult.append(" ").append(prediction.getFullText(null).toString() + "\n")
-////                    Log.i(FragmentActivity.TAG, prediction.placeId)
-////                    Log.i(FragmentActivity.TAG, prediction.getPrimaryText(null).toString())
-//                    Toast.makeText(
-//                        this@MainActivity,
-//                        prediction.getPrimaryText(null).toString() + "-" + prediction.getSecondaryText(
-//                            null
-//                        ),
-//                        Toast.LENGTH_SHORT
-//                    ).show()
-
-
                 }
 
                 autoSuggestAdapter?.setData(alist)
@@ -205,7 +354,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            /***/
         })
 
 
@@ -222,10 +370,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (isValid) {
-                // do something
-//                val latlon: LatLon? = locationMapToLatLon.get(locationInput)
-//                tenDaysFragment.viewModel.setLatLon(latlon!!.lat, latlon!!.lon)
-//                todayFragment.updateData(latlon!!.lat, latlon!!.lon)
+
                 Toast.makeText(context, "location set to $locationInput", Toast.LENGTH_LONG).show()
             }
 
@@ -245,50 +390,22 @@ class MainActivity : AppCompatActivity() {
     fun locationSuggestionHandler(view:View){
 
         var autoCompleteTextView: AutoCompleteTextView  = view.findViewById(R.id.locationEditText)
-        // Initialize a new array with elements
-
-
-//        // Initialize a new array adapter object
-//         adapter = ArrayAdapter<String>(
-//            this, // Context
-//            android.R.layout.simple_dropdown_item_1line // Layout
-////            locationSuggested // Array
-//
-//        )
-
-
-        // Set the AutoCompleteTextView adapter
         autoCompleteTextView.setAdapter(autoSuggestAdapter)
-
-
-        // Auto complete threshold
-        // The minimum number of characters to type to show the drop down
         autoCompleteTextView.threshold = 1
-
-
-        // Set an item click listener for auto complete text view
         autoCompleteTextView.onItemClickListener = AdapterView.OnItemClickListener{
                 parent,view,position,id->
             val selectedItem = parent.getItemAtPosition(position).toString()
-            // Display the clicked item using toast
             Toast.makeText(this,"Selected : $selectedItem",Toast.LENGTH_SHORT).show()
         }
-
-
-        // Set a dismiss listener for auto complete text view
         autoCompleteTextView.setOnDismissListener {
             Toast.makeText(this,"Suggestion closed.",Toast.LENGTH_SHORT).show()
         }
 
-
-        // Set a click listener for root layout
         view.findViewById<LinearLayout>(R.id.root_layout).setOnClickListener{
             val text = autoCompleteTextView.text
             Toast.makeText(this,"Inputted : $text",Toast.LENGTH_SHORT).show()
         }
 
-
-        // Set a focus change listener for auto complete text view
         autoCompleteTextView.onFocusChangeListener = View.OnFocusChangeListener{
                 view, b ->
             if(b){

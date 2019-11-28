@@ -5,13 +5,15 @@
     <item
         android:id="@+id/location_custom"
         android:icon="@drawable/search"
-        app:showAsAction="collapseActionView"
+        app:showAsAction="ifRoom"
+
         android:title="Custom location"/>
+<!--    app:actionViewClass="androidx.appcompat.widget.SearchView"-->
 
     <item
         android:id="@+id/location_from_device"
         android:icon="@drawable/gps_avatar"
-        app:showAsAction="collapseActionView"
+        app:showAsAction="ifRoom"
         android:title="Location from device"/>
 
 
