@@ -66,4 +66,7 @@ dependencies {
 
     // Preference
     implementation "androidx.preference:preference:1.0.0"
+
+    //google place ap
+    implementation 'com.google.android.libraries.places:places:1.0.0'
 }
